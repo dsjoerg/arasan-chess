@@ -1010,11 +1010,19 @@ Move RootSearch::ply0_search(const vector<Move> &exclude,
                   }
                   aspirationWindow = Constants::MATE;
                }
+               else if (Scoring::mateScore(value)) {
+                  // We got a mate score so don't bother doing any
+                  // more aspiration steps, just widen to the max.
+                  aspirationWindow = Constants::MATE;
+               }
                else {
                   aspirationWindow = ASPIRATION_WINDOW[++fails];
                }
                if (aspirationWindow == Constants::MATE) {
-                  lo_window = iteration_depth-Constants::MATE-1;
+                  // We can miss shallow mates but then find them in
+                  // later iterations. Set the window to -Mate1 so we
+                  // will never fail low and not get a pv.
+                  lo_window = 1-Constants::MATE;
                } else {
                   if (iteration_depth <= MoveGenerator::EASY_PLIES) {
                      aspirationWindow += 2*options.search.easy_threshold;
